@@ -5,7 +5,7 @@ mongoose.set('strictQuery', false)
 
 const url = process.env.MONGODB_URI
 
-console.log("Connecting to", url)
+console.log('Connecting to', url)
 mongoose.connect(url, { family: 4 })
   .then(result => {
     console.log('connected to MongoDB')
@@ -21,11 +21,11 @@ const personSchema = new mongoose.Schema({
     required: true
   },
   number: {
-    type: String, 
+    type: String,
     validate: {
       validator: function(v) {
         return (/^\d{2,3}-[0-9]*$/.test(v) && v.length >= 8)
-      }, 
+      },
       message: props => `${props.value}. Numeron täytyy alkaa 2-3 numerolla ja väliviivalla ("XX-" tai "XXX-") ja olla vähintään 8 merkkiä pitkä.`
     }
   }

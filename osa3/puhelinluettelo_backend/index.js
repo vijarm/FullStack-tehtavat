@@ -6,7 +6,7 @@ const Person = require('./models/person')
 
 
 morgan.token('postData', function getBody (req) {
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     return (JSON.stringify(req.body))
   }
   /*return ("Testi: Ei ole POST tyyppinen")*/
@@ -21,7 +21,7 @@ app.get('/api/persons', (request, response, next) => {
   Person.find({}).then(persons => {
     response.json(persons)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
@@ -32,12 +32,13 @@ app.get('/api/persons/:id', (request, response, next) => {
     })
     .catch(error => next(error))
 })
-  
+
 app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
-  console.log("Poistetaan tiedot id:ltä " + id)
+  console.log('Poistetaan tiedot id:ltä ' + id)
   Person.findByIdAndDelete(id).
     then(result => {
+      console.log(`Poistettiin id:ltä ${id} tiedot: `, result)
       response.status(204).end()
     })
     .catch(error => next(error))
@@ -45,14 +46,13 @@ app.delete('/api/persons/:id', (request, response, next) => {
 
 app.get('/info', (request, response, next) => {
   Person.find({}).then(list => {
-    length = list.length
     const requestTime = new Date().toLocaleString()
     response.send(
-      `<p>Puhelinluettelossa on ${length} nimeä.</p>
+      `<p>Puhelinluettelossa on ${list.length} nimeä.</p>
       <p>Pyyntö vastaanotettu ${requestTime}.</p>`
     )
   })
-  .catch(error => next(error)) 
+    .catch(error => next(error))
 })
 
 app.post('/api/persons', (request, response, next) => {
@@ -60,7 +60,7 @@ app.post('/api/persons', (request, response, next) => {
   console.log(request.body)
 
 
-  /*backend tuplanimen tarkistus, pitää muuttaa Person .... Mutta ei ollut (vielä) tehtävissä, tarkistetaan frontendissä
+  /*backend tuplanimen tarkistus, pitää muuttaa Person .... Mutta ei ollut (vielä) tehtävissä
   if ((persons.map(person => person.name)).includes(body.name)) {
     return response.status(400).json({
       error: 'Nimi on jo luettelossa!'
@@ -76,20 +76,20 @@ app.post('/api/persons', (request, response, next) => {
   newPerson.save().then(addedPerson => {
     response.json(addedPerson)
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
   const { name, number } = request.body
   const id = request.params.id
   Person.findById(id).
-    then (person => { 
+    then (person => {
       if (!person)  {
         return response.status(404).end()
       }
       person.name = name
       person.number = number
-      
+
       return person.save().then((updatedPerson) => {
         response.json(updatedPerson)
       })
