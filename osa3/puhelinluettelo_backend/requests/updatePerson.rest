@@ -1,0 +1,7 @@
+PUT http://localhost:3001/api/persons/6a0ee50e22d842e1b3febb9d
+Content-Type: application/json
+
+{
+    "name": "Aina Ilmanen",
+    "number": "0700-FREE"
+}
