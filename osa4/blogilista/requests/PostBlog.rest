@@ -2,8 +2,8 @@ POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
 {
-  "title": "How to build backend",
-  "author": "Luukkauinen",
+  "title": "Loppumaton tuuri",
+  "author": "Hannu Hanhi",
   "url": "noUrl",
   "likes": 1
 }
