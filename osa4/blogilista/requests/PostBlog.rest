@@ -2,8 +2,8 @@ POST http://localhost:3003/api/blogs
 Content-Type: application/json
 
 {
-  "title": "Muumipeikko ja pyrstötähti",
-  "author": "Tove Jansson",
+  "title": "How to build backend",
+  "author": "Luukkauinen",
   "url": "noUrl",
   "likes": 1
 }
