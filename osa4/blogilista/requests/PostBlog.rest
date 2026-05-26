@@ -1,9 +1,10 @@
 POST http://localhost:3003/api/blogs
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlNhbGFzYW5hVGVzdGkiLCJpZCI6IjZhMTVhODI4ODliYzdjZWY5YTVjOTgxMyIsImlhdCI6MTc3OTgwNDkwNH0.h2yFgcPu9_Xe7FDTkgR_LJ2wAMmnMSUgYklf16Hk2uo
 
 {
-  "title": "Vanhus ja järvi, v3.1",
-  "author": "Heminkvei",
+  "title": "Tons of tokens v2",
+  "author": "Ralf",
   "url": "eiOle",
-  "likes": 11
+  "likes": 6
 }

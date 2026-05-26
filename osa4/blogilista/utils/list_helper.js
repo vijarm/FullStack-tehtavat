@@ -1,3 +1,10 @@
+const User = require('../models/user')
+
+const usersInDb = async () => {
+  const users = await User.find({})
+  return users.map(u => u.toJSON())
+}
+
 const dummy = (blogs) => {
     return (
         1
@@ -126,12 +133,31 @@ const testBlogs = [
     }  
 ]
 
+const testUsers = [
+    {
+        _id: "6a157e4206b021b7ad8a9874",
+        username: "Welho_77",
+        name: "Welho Wuorilta",
+        passwordHash: "$2b$10$eJKwUFCe0bY4hfUzeeUH0OttNPSwz9TXZyBCJOS7c0FtL0zwzi.3y",
+        __v: 0
+    },
+    {
+        _id: "6a157ebd06b021b7ad8a9875",
+        username: "HemppaVaan",
+        name: "Hemuli Mäkelä",
+        passwordHash: "$2b$10$cKJ0Py5MSJDq9wSEyswnK.3HQdgWzJCJX6tULl6F/q5p5btFuNchC",
+        __v: 0
+    }
+]
+
 
 module.exports = {
-  testBlogs, 
-  dummy,
-  totalLikes,
-  favoriteBlog,
-  mostBlogs,
-  mostLikedAuthor
+    testUsers,
+    testBlogs, 
+    dummy,
+    totalLikes,
+    favoriteBlog,
+    mostBlogs,
+    mostLikedAuthor,
+    usersInDb
 }

@@ -4,7 +4,11 @@ const blogSchema = new mongoose.Schema({
   title: { type: String, required: [true, 'Blog title cannot be empty'] },
   author: String,
   url: { type: String, required : [true, 'Blog url cannot be empty'] },
-  likes: { type: Number, default: 0 }
+  likes: { type: Number, default: 0 },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 })
 
 blogSchema.set('toJSON', {
