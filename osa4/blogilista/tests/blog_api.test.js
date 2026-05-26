@@ -6,6 +6,7 @@ const app = require('../app')
 const Blog = require('../models/blog')
 const User = require('../models/user')
 const listHelper = require('../utils/list_helper')
+const jwt = require('jsonwebtoken')
 const { info, error } = require('../utils/logger')
 
 const api = supertest(app)
@@ -13,11 +14,30 @@ const api = supertest(app)
 const initialBlogs = listHelper.testBlogs
 const initialUsers = listHelper.testUsers
 
+let testUserId
+let testUserToken
+
 describe('testing blogs when there are blogs already saved', () => {
 
     beforeEach(async () => {
         await Blog.deleteMany({})
         await Blog.insertMany(initialBlogs)
+
+        await User.deleteMany({})
+
+        const testUser = await User.create({
+            username: 'testuser',
+            name: 'Only Testing',
+            password: 'password'
+        })
+        
+        testUserId = testUser.id
+        const userForToken = {
+        username: testUser.username,
+        id: testUser.id,
+        }
+
+        testUserToken = jwt.sign(userForToken, process.env.SECRET)
     })
 
     test('blogs are returned as json', async () => {
@@ -44,11 +64,13 @@ describe('testing blogs when there are blogs already saved', () => {
         title: 'How to test posting new blogs',  
         author: 'Test author',
         url: 'no url',
-        likes: 3
+        likes: 3,
+        user: testUserId
         }
 
         await api
             .post('/api/blogs')
+            .set('Authorization', `Bearer ${testUserToken}`)
             .send(newBlog)
             .expect(201)
             .expect('Content-Type', /application\/json/)
@@ -60,15 +82,37 @@ describe('testing blogs when there are blogs already saved', () => {
         assert(titles.includes('How to test posting new blogs'))
     })
 
-    test('new blog without likes will set likes to 0', async () => {
-        const newBlogWithoutLikes = {
-            title: 'Does anyone like this?',  
-            author: 'Unknown',
-            url: 'no url'
+    test('cannot post new blogs without token, error 401', async () => {
+        const newBlog = {
+        title: 'How to test posting new blogs',  
+        author: 'Test author',
+        url: 'no url',
+        likes: 3,
+        user: testUserId
         }
 
         await api
             .post('/api/blogs')
+            .send(newBlog)
+            .expect(401)
+
+        const response = await api.get('/api/blogs')
+
+        assert.strictEqual(response.body.length, initialBlogs.length)
+    })
+
+    
+    test('new blog without likes will set likes to 0', async () => {
+        const newBlogWithoutLikes = {
+            title: 'Does anyone like this?',  
+            author: 'Unknown',
+            url: 'no url',
+            user: testUserId
+        }
+
+        await api
+            .post('/api/blogs')
+            .set('Authorization', `Bearer ${testUserToken}`)
             .send(newBlogWithoutLikes)
             .expect(201)
 
@@ -81,11 +125,13 @@ describe('testing blogs when there are blogs already saved', () => {
         const newBlogWithoutTitle = {
             author: 'Unknown',
             url: 'no url',
-            likes: 3
+            likes: 3,
+            user: testUserId
         }
 
         await api
             .post('/api/blogs')
+            .set('Authorization', `Bearer ${testUserToken}`)
             .send(newBlogWithoutTitle)
             .expect(400)
     })
@@ -94,22 +140,42 @@ describe('testing blogs when there are blogs already saved', () => {
         const newBlogWithoutUrl = {
             title: 'This blog has no url',
             author: 'Unknown',
-            likes: 3
+            likes: 3,
+            user: testUserId
         }
 
         await api
             .post('/api/blogs')
+            .set('Authorization', `Bearer ${testUserToken}`)
             .send(newBlogWithoutUrl)
             .expect(400)
     })
 
     test('a blog can be deleted', async () => {
+        const newBlogToDelete = {
+            title: 'How to delete blogs',  
+            author: 'Test author',
+            url: 'no url',
+            likes: 3,
+            user: testUserId
+        }
+
+        const response = await api
+            .post('/api/blogs')
+            .set('Authorization', `Bearer ${testUserToken}`)
+            .send(newBlogToDelete)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
+
+            //console.log(response.body)
+
         await api
-            .delete('/api/blogs/5a422ba71b54a676234d17fb')
+            .delete(`/api/blogs/${response.body.id}`)
+            .set('Authorization', `Bearer ${testUserToken}`)
             .expect(204)
     
-        const response = await api.get('/api/blogs')
-        assert.strictEqual(response.body.length, initialBlogs.length - 1)
+        const responseAllBlogs = await api.get('/api/blogs')
+        assert.strictEqual(responseAllBlogs.body.length, initialBlogs.length)
     })
 
     test('a blog can be updated, new amount of likes is correct', async () => {
