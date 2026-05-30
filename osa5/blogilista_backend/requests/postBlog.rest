@@ -1,0 +1,10 @@
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlNhbGFzYW5hVGVzdGkiLCJpZCI6IjZhMTVhODI4ODliYzdjZWY5YTVjOTgxMyIsImlhdCI6MTc3OTgwNzg1M30._C783v2kQtY5IcGa3ssVBr9A5AhK1u9Bfp83rXa-GSg
+
+{
+  "title": "Scubadiving 3.0",
+  "author": "Masa Mainio",
+  "url": "eiOle",
+  "likes": 1
+}
