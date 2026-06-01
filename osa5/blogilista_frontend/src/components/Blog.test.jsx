@@ -1,77 +1,108 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import Blog from './Blog'
 
 describe('Testing how blog information shows up', () => {
-  beforeEach(() => {
 
-    const blog = {
+  const blogs = [
+    {
       title: 'Can you render this plz',
+      author: 'Rendered author',
+      url: 'www.showup.com',
+      likes: 3,
+      user: { username: 'kirjailija', id: 'kirjailijaId' },
+      id: 'blog1id'
+    },
+    {
+      title: 'Do not render this plz',
       author: 'DoNotRender',
       url: 'www.donotshow.com',
-      likes: 2,
-      user: { username: 'kirjailija' }
+      likes: 1,
+      user: { username: 'haamukirjoittaja', id: 'haamuId' },
+      id: 'blog2id'
     }
+  ]
 
-    const fakeuser = {
-      user: { username: 'satikuti' }
-    }
+  test('when user is not logged, blog information is visible, but buttons to like or remove are not', () => {
 
-    render(<Blog blog={blog} user={fakeuser} />)
+    render(
+      <MemoryRouter initialEntries={['/blogs/blog1id']}>
+        <Routes>
+          <Route
+            path="/blogs/:id"
+            element={
+              <Blog
+                blogs={blogs}
+                user={null}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    const blog1Title = screen.getByText('Can you render this plz', { exact: false })
+    const blog2Title = screen.queryByText('Do not render this plz')
+    const likes = screen.getByText('Likes: 3', { exact: false })
+
+    expect(blog1Title).toBeDefined()
+    expect(blog2Title).toBeNull()
+    expect(likes).toBeDefined()
+    expect(screen.queryAllByRole('button')).toHaveLength(0)  //kirjautumattomana ei näy yhtään nappia
+
   })
 
-  test('blog renders only title as default', () => {
+  test('logged user can see like button, but can not remove blogs posted by other users', () => {
 
-    const titleElement = screen.getByText('Can you render this plz')
-    const urlElement = screen.queryByText('www.donotshow.com')
-    const likesElement = screen.queryByText('likes:')
+    render(
+      <MemoryRouter initialEntries={['/blogs/blog1id']}>
+        <Routes>
+          <Route
+            path="/blogs/:id"
+            element={
+              <Blog
+                blogs={blogs}
+                user={ { username: 'anotherUser', id: 'DifferentId' } }
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
 
-    expect(titleElement).toBeDefined()
-    expect(urlElement).toBeNull()
-    expect(likesElement).toBeNull()
+    expect(screen.getByText('Can you render this plz', { exact: false })).toBeDefined()
+
+    const likeButton = screen.getByRole('button', { name: 'like' })
+    const removeButton = screen.queryByRole('button', { name: 'remove' })
+
+    expect(likeButton).toBeDefined()
+    expect(removeButton).toBeNull()
+
   })
 
+  test('logged user can see remove button on blogs posted by itself', () => {
 
-  test('url and likes show up after clickiing view button', async () => {
+    render(
+      <MemoryRouter initialEntries={['/blogs/blog1id']}>
+        <Routes>
+          <Route
+            path="/blogs/:id"
+            element={
+              <Blog
+                blogs={blogs}
+                user={ { username: 'kirjailija', id: 'kirjailijaId' } }
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    )
 
-    const user = userEvent.setup()
-    const button = screen.getByText('view')
-    await user.click(button)
+    expect(screen.getByText('Can you render this plz', { exact: false })).toBeDefined()
 
-    const urlElement = screen.getByText('www.donotshow.com', { exact: false })
-    const likesElement = screen.getByText('Likes: 2', { exact: false })
-    const authorElement = screen.getByText('DoNotRender', { exact: false })
+    const removeButton = screen.queryByRole('button', { name: 'remove' })
+    expect(removeButton).toBeDefined()
+    expect(screen.queryAllByRole('button')).toHaveLength(2) // Molemmat napit näkyy
 
-    expect(urlElement).toBeVisible()
-    expect(likesElement).toBeVisible()
-    expect(authorElement).toBeVisible()
   })
-})
-
-test('clicking like button twice calls function addLikeToBlog twice', async () => {
-
-  const blog = {
-    title: 'Can you render this plz',
-    author: 'DoNotRender',
-    url: 'www.donotshow.com',
-    likes: 2,
-    user: { username: 'kirjailija' }
-  }
-
-  const fakeuser = {
-    user: { username: 'satikuti' }
-  }
-
-  const addLikeToBlog = vi.fn()
-  render(<Blog blog={blog} user={fakeuser} addNewLike={addLikeToBlog} />)
-
-  const user = userEvent.setup()
-  const viewButton = screen.getByText('view')
-  await user.click(viewButton)
-
-  const likeButton = screen.getByRole('button', { name: 'like' })
-  await user.click(likeButton)
-  await user.click(likeButton)
-
-  expect(addLikeToBlog.mock.calls).toHaveLength(2)
 })

@@ -1,16 +1,23 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
+
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from './components/Notification'
 import CreateBlogForm from './components/CreateBlogForm'
 import Togglable from './components/Togglable'
+import BlogList from './components/BlogList'
+import LoginForm from './components/LoginForm'
+import LogoutButton from './components/LogoutButton'
+
+import {
+  BrowserRouter as Router,
+  Routes, Route, Link
+} from 'react-router-dom'
 
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [notification, setNotification] = useState({ message: null })
   const [user, setUser] = useState(null)
 
@@ -29,6 +36,13 @@ const App = () => {
     }
   }, [])
 
+  const kuittaus = ({ message, type }) => {
+    setNotification({ message: message, type: type })
+    setTimeout(() => {
+      setNotification({ message: null })
+    }, 5000)
+  }
+
   const addNewLike = async blog => {
     const updatedBlog = ({ ...blog, likes: blog.likes + 1 })
     try {
@@ -39,7 +53,7 @@ const App = () => {
     }
     const newBlogs = blogs.map(blog => blog.id !== updatedBlog.id ? blog : updatedBlog)
     setBlogs( newBlogs.sort((a,b) => b.likes - a.likes) )
-    console.log('lisätty like ja järjestetty')
+    kuittaus({ message: `You liked blog ${blog.title} by ${blog.author}`, type: 'confirm' })
   }
 
   const deleteBlog = async blogToDelete => {
@@ -47,63 +61,12 @@ const App = () => {
     try {
       console.log('deleting blog ', blogToDelete.title)
       await blogService.remove(blogToDelete)
-
       setBlogs(blogs.filter(blog => blog.id !== blogToDelete.id))
-
-      setNotification({ message: `Blog deleted successfully: ${blogToDelete.title} by ${blogToDelete.author}`, type: 'confirm' })
-      setTimeout(() => {
-        setNotification({ message: null })
-      }, 5000)
+      kuittaus({ message: `Blog deleted successfully: ${blogToDelete.title} by ${blogToDelete.author}`, type: 'confirm' })
 
     } catch (error) {
       console.log(`Failed to delete blog: ${error.response}`)
     }
-  }
-
-  const loginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        <label>
-          username
-          <input
-            type="text"
-            value={username}
-            onChange={({ target }) => setUsername(target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          password
-          <input
-            type="password"
-            value={password}
-            onChange={({ target }) => setPassword(target.value)}
-          />
-        </label>
-      </div>
-      <button type="submit">login</button>
-    </form>
-  )
-
-  const showBlogs = () => {
-    return(
-      <div>
-        <h2>blogs</h2>
-        {blogs.map(blog =>
-          <Blog key={blog.id} blog={blog} addNewLike={addNewLike} user={user} deleteBlog={deleteBlog} />
-        )}
-      </div>
-    )
-  }
-
-  const loggedMenu = () => {
-    return(
-      <div>
-        <p>{user.name} logged in</p>
-        <button type="button" onClick={handleLogout}>Log out</button>
-      </div>
-    )
   }
 
   const createBlog = async (event, newBlog) => {
@@ -113,32 +76,22 @@ const App = () => {
       const postedBlog = await blogService.create(newBlog)
       console.log('added blog:', postedBlog)
       setBlogs(blogs.concat(postedBlog))
-      setNotification({ message: `New blog added successfully: ${postedBlog.title} by ${postedBlog.author}`, type: 'confirm' })
-      setTimeout(() => {
-        setNotification({ message: null })
-      }, 5000)
-      createBlogFormRef.current.toggleVisibility()
+      kuittaus({ message: `New blog added successfully: ${postedBlog.title} by ${postedBlog.author}`, type: 'confirm' })
+      return true
     } catch (error) {
-      setNotification({ message: `Failed to create new blog: ${error.response.data.error}`, type: 'error' })
-      setTimeout(() => {
-        setNotification({ message: null })
-      }, 5000)
+      console.log('Virhe: ', error)
+      kuittaus({ message: `Failed to create new blog: ${error.response.data.error}`, type: 'error' })
+      return false
     }
   }
-
-  const createBlogFormRef = useRef()
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
-    setNotification({ message: 'logged out succesfully', type: 'confirm' })
-    setTimeout(() => {
-      setNotification({ message: null })
-    }, 5000)
+    kuittaus({ message: 'logged out succesfully', type: 'confirm' })
   }
 
-  const handleLogin = async event => {
-    event.preventDefault()
+  const handleLogin = async (username, password) => {
     console.log('logging in with', username)
     try {
       const user = await loginService.login({ username, password })
@@ -148,29 +101,46 @@ const App = () => {
       )
       setUser(user)
       blogService.setToken(user.token)
-      setUsername('')
-      setPassword('')
+      kuittaus({ message: `logged in as ${user.name}`, type: 'confirm' })
+      return true
     } catch {
-      setNotification({ message: 'wrong username or password', type: 'error' })
-      setTimeout(() => {
-        setNotification({ message: null })
-      }, 5000)
+      kuittaus({ message: 'wrong username or password', type: 'error' })
+      return false
     }
   }
 
-  return (
-    <div>
-      <Notification message={notification.message} type={notification.type} />
-      {!user && loginForm()}
-      {user && loggedMenu()}
-      {user && (
-        <Togglable buttonLabel="create new blog" ref={createBlogFormRef}>
-          <CreateBlogForm createBlog={createBlog} user={user} />
-        </Togglable>
-      )}
-      {user && showBlogs()}
+  const padding = {
+    padding: 5
+  }
 
-    </div>
+  return (
+    <Router>
+      <div>
+        <div>
+          <Link style={padding} to="/">blogs</Link>
+          {user && <Link style={padding} to="/newblog">new blog</Link>}
+          {user ? <LogoutButton handleLogout={handleLogout} /> : <Link style={padding} to="/login">login</Link> }
+        </div>
+        <div>
+          <Notification message={notification.message} type={notification.type} />
+        </div>
+
+        <Routes>
+          <Route path="/" element={
+            <BlogList blogs={blogs} addNewLike={addNewLike} deleteBlog={deleteBlog} user={user} />
+          } />
+          <Route path="/login" element={
+            <LoginForm handleLogin={handleLogin} />
+          } />
+          <Route path="/newblog" element={
+            <CreateBlogForm createBlog={createBlog} user={user} />
+          } />
+          <Route path="/blogs/:id" element={
+            <Blog blogs={blogs} addNewLike={addNewLike} user={user} deleteBlog={deleteBlog} />
+          } />
+        </Routes>
+      </div>
+    </Router>
   )
 }
 

@@ -3,7 +3,7 @@ const baseUrl = '/api/login'
 
 const login = async credentials => {
   const response = await axios.post(baseUrl, credentials)
-  console.log('kirjautumisesta tuleva data: ', response.data)
+  //console.log('kirjautumisesta tuleva data: ', response.data)
   return response.data
 }
 
