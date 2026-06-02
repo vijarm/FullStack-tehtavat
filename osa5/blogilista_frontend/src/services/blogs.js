@@ -32,6 +32,13 @@ const put = async newObject => {
   return response.data
 }
 
+const getById = async idToGet => {
+  const urlWithId = `${baseUrl}/${idToGet}`
+  const response = await axios.get(urlWithId)
+
+  return response.data
+}
+
 const remove = async objectToDelete => {
   const idToDelete = objectToDelete.id
   const urlWithId = `${baseUrl}/${idToDelete}`
@@ -44,4 +51,4 @@ const remove = async objectToDelete => {
   return response
 }
 
-export default { getAll, create, setToken, put, remove }
+export default { getAll, create, setToken, put, remove, getById }

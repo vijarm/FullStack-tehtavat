@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { TextField, Button } from '@mui/material'
 
 const CreateBlogForm = ({ createBlog }) => {
   const [newBlog, setNewBlog] = useState({ title: '', author: '', url: '' })
@@ -7,48 +8,51 @@ const CreateBlogForm = ({ createBlog }) => {
 
   const clickCreateBlog = async event => {
     event.preventDefault()
-    const createOk = createBlog(event, newBlog)
+    const createOk = await createBlog(event, newBlog)
     if (createOk) { navigate('/') }
-
   }
+
   return(
     <div>
       <h2>Create blog</h2>
       <form onSubmit={ clickCreateBlog }>
         <div>
-          <label>
-            title:
-            <input
-              type="text"
-              name="title"
-              value={newBlog.title}
-              onChange={({ target }) => setNewBlog({ ...newBlog, [target.name]: target.value })}
-            />
-          </label>
+          <TextField
+            label='title'
+            type='text'
+            name='title'
+            variant='filled'
+            size='small'
+            margin='dense'
+            value={newBlog.title}
+            onChange={({ target }) => setNewBlog({ ...newBlog, [target.name]: target.value })}
+          />
         </div>
         <div>
-          <label>
-            author:
-            <input
-              type="text"
-              name="author"
-              value={newBlog.author}
-              onChange={({ target }) => setNewBlog({ ...newBlog, [target.name]: target.value })}
-            />
-          </label>
+          <TextField
+            label='author'
+            type='text'
+            name='author'
+            variant='filled'
+            size='small'
+            margin='dense'
+            value={newBlog.author}
+            onChange={({ target }) => setNewBlog({ ...newBlog, [target.name]: target.value })}
+          />
         </div>
         <div>
-          <label>
-            url:
-            <input
-              type="text"
-              name="url"
-              value={newBlog.url}
-              onChange={({ target }) => setNewBlog({ ...newBlog, [target.name]: target.value })}
-            />
-          </label>
+          <TextField
+            label='url'
+            type='text'
+            name='url'
+            variant='filled'
+            size='small'
+            margin='dense'
+            value={newBlog.url}
+            onChange={({ target }) => setNewBlog({ ...newBlog, [target.name]: target.value })}
+          />
         </div>
-        <button type="submit">create blog</button>
+        <Button type="submit" variant="contained" style={{ marginTop: 10 }} >create blog</Button>
       </form>
     </div>
   )

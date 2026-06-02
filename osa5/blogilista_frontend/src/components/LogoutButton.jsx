@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { TextField, Button } from '@mui/material'
 
 const LogoutButton = ({ handleLogout }) => {
   const navigate = useNavigate()
@@ -10,7 +11,7 @@ const LogoutButton = ({ handleLogout }) => {
 
   return (
     <>
-      <button type="button" onClick={ handleClick }>Log out</button>
+      <Button color='inherit' type='button' onClick={ handleClick }>Log out</Button>
     </>
   )
 }

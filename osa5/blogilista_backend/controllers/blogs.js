@@ -33,7 +33,7 @@ blogsRouter.post('/', userExtractor, async (request, response) => {
 })
 
 blogsRouter.get('/:id', async (request, response) => {
-  const blog = await Blog.findById(request.params.id)
+  const blog = await Blog.findById(request.params.id).populate('user', { username: 1, name: 1 })
   if (blog) {
     response.json(blog)
   } else {
